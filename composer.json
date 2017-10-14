@@ -1,8 +1,8 @@
 {
-    "name": "koenhoeijmakers/laravel-argon2",
-    "description": "Argon2 implementation",
+    "name": "dvaun/laravel-argon2",
+    "description": "Argon2 implementation using php-argon2-ext",
     "require": {
-        "php": "^7.2",
+        "php": "^7.0",
         "illuminate/hashing": "5.5.*"
     },
     "license": "MIT",
@@ -10,11 +10,15 @@
         {
             "name": "Koen Hoeijmakers",
             "email": "koen@hoeijmakers.me"
+        },
+        {
+            "name": "David Vaughan",
+            "email": "dvaughan@sjr.com"
         }
     ],
     "autoload": {
         "psr-4": {
-            "KoenHoeijmakers\\LaravelArgon2\\": "src/"
+            "dvaun\\LaravelArgon2\\": "src/"
         }
     }
 }
