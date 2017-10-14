@@ -1,6 +1,6 @@
 <?php
 
-namespace KoenHoeijmakers\LaravelArgon2;
+namespace dvaun\LaravelArgon2;
 
 use RuntimeException;
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
@@ -19,14 +19,14 @@ class Argon2Hasher implements HasherContract
      *
      * @var int
      */
-    protected $timeCost = 2;
+    protected $timeCost = 3;
 
     /**
      * Default threads factor.
      *
      * @var int
      */
-    protected $threads = 2;
+    protected $threads = 1;
 
     /**
      * Hash the given value.
@@ -42,11 +42,16 @@ class Argon2Hasher implements HasherContract
         $timeCost = $options['time_cost'] ?? $this->timeCost;
         $threads = $options['threads'] ?? $this->threads;
 
-        $hash = password_hash($value, PASSWORD_ARGON2I, [
-            'memory_cost' => $memoryCost,
-            'time_cost'   => $timeCost,
-            'threads'     => $threads,
-        ]);
+        $options = [
+            m_cost: $memoryCost
+            t_cost: $timeCost
+            threads: 1
+        ]
+
+        $hash = argon2_hash($value [, $algorithm = HASH_ARGON2I] 
+            [, $options ]
+            [, $raw = false]
+        );
 
         if ($hash === false) {
             throw new RuntimeException('Argon2i hashing not supported.');
@@ -69,7 +74,7 @@ class Argon2Hasher implements HasherContract
             return false;
         }
 
-        return password_verify($value, $hashedValue);
+        return argon2_verify($value, $hashedValue);
     }
 
     /**
@@ -81,15 +86,23 @@ class Argon2Hasher implements HasherContract
      */
     public function needsRehash($hashedValue, array $options = [])
     {
-        $memoryCost = $options['memory_cost'] ?? $this->memoryCost;
-        $timeCost = $options['time_cost'] ?? $this->timeCost;
-        $threads = $options['threads'] ?? $this->threads;
-
-        return password_needs_rehash($hashedValue, PASSWORD_ARGON2I, [
-            'memory_cost' => $memoryCost,
-            'time_cost'   => $timeCost,
-            'threads'     => $threads,
-        ]);
+        set_error_handler(function($errno, $errstr, $errfile, $errline, array $errcontext) {
+            // error was suppressed with the @-operator
+            if (0 === error_reporting()) {
+                return false;
+            }
+        
+            throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+        });
+        $pass = false;
+        try {
+            $pass = argon2_verify($value, $hashedValue);
+        }
+        catch (ErrorException $e) {
+            $pass = false;
+        }
+        restore_error_handler();
+        return $pass;
     }
 
     /**
